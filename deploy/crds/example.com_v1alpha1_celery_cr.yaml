@@ -1,0 +1,10 @@
+apiVersion: example.com/v1alpha1
+kind: Celery
+metadata:
+  name: example-celery
+spec:
+  # Add fields here
+  brokerImage: 'rabbitmq:3.8'
+  workerImage: ''
+  wSize: 5
+

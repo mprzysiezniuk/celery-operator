@@ -7,6 +7,8 @@ import (
 
 	examplev1alpha1 "celery-operator/pkg/apis/example/v1alpha1"
 
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -59,6 +61,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// if err != nil {
 	// 	return err
 	// }
+
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &examplev1alpha1.Celery{},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &examplev1alpha1.Celery{},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &corev1.PersistentVolumeClaim{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &examplev1alpha1.Celery{},
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -125,6 +151,24 @@ func (r *ReconcileCelery) Reconcile(request reconcile.Request) (reconcile.Result
 		delay := time.Second * time.Duration(5)
 
 		log.Info(fmt.Sprintf("RabbitMQ isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
+	// === Worker ===
+
+	result, err = r.ensureDeployment(request, celery, r.deploymentForCeleryWorker(celery))
+	if result != nil {
+		return *result, err
+	}
+
+	workerRunning := r.isCeleryWorkerUp(celery)
+
+	if !workerRunning {
+		// If worker isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("Celery worker isn't running, waiting for %s", delay))
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 

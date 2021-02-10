@@ -100,7 +100,7 @@ func (r *ReconcileCelery) serviceForRabbitMq(cr *examplev1alpha1.Celery) *corev1
 					Name: cr.Name,
 				},
 			},
-			Type: corev1.ServiceTypeNodePort,
+			ClusterIP: "None",
 		},
 	}
 

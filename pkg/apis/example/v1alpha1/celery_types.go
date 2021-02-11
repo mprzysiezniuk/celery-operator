@@ -12,9 +12,10 @@ type CelerySpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	BrokerImage string `json:"brokerImage"`
-	WorkerImage string `json:"workerImage"`
-	WSize       int32  `json:"wSize"`
+	BrokerImage   string `json:"brokerImage"`
+	FrontendImage string `json:"frontendImage"`
+	WorkerImage   string `json:"workerImage"`
+	WSize         int32  `json:"wSize"`
 }
 
 // CeleryStatus defines the observed state of Celery

@@ -1,8 +1,9 @@
 package celery
 
 import (
-	examplev1alpha1 "celery-operator/pkg/apis/example/v1alpha1"
 	"context"
+
+	examplev1alpha1 "celery-operator/pkg/apis/example/v1alpha1"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func getCommand() []string {
+func getWorkerCommand() []string {
 	command := []string{"celery", "-A", "tasks", "worker", "--loglevel=info"}
 	return command
 }
@@ -45,7 +46,7 @@ func (r *ReconcileCelery) deploymentForCeleryWorker(cr *examplev1alpha1.Celery) 
 					Containers: []corev1.Container{{
 						Image:   cr.Spec.WorkerImage,
 						Name:    "worker",
-						Command: getCommand(),
+						Command: getWorkerCommand(),
 					},
 					},
 				},
@@ -57,19 +58,19 @@ func (r *ReconcileCelery) deploymentForCeleryWorker(cr *examplev1alpha1.Celery) 
 	return dep
 }
 
-func (r *ReconcileCelery) isCeleryWorkerUp(v *examplev1alpha1.Celery) bool {
+func (r *ReconcileCelery) isCeleryWorkerUp(cr *examplev1alpha1.Celery) bool {
 	deployment := &appsv1.Deployment{}
 
 	err := r.client.Get(context.TODO(), types.NamespacedName{
 		Name:      "celery-worker",
-		Namespace: v.Namespace,
+		Namespace: cr.Namespace,
 	}, deployment)
 
 	if err != nil {
 		log.Error(err, "Deployment worker not found")
 		return false
 	}
-	if deployment.Status.ReadyReplicas == 1 {
+	if deployment.Status.ReadyReplicas == cr.Spec.WSize {
 		return true
 	}
 

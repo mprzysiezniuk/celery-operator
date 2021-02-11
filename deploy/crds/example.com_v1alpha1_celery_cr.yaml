@@ -5,6 +5,6 @@ metadata:
 spec:
   # Add fields here
   brokerImage: 'rabbitmq:3.8'
-  workerImage: 'mprzysiezniuk/celery-worker:v0.0.6'
-  wSize: 2
-
+  frontendImage: 'mprzysiezniuk/celery-worker:v0.0.13'
+  workerImage: 'mprzysiezniuk/celery-worker:v0.0.13'
+  wSize: 3

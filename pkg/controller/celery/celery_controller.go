@@ -172,29 +172,28 @@ func (r *ReconcileCelery) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
+	// === Frontend ===
+
+	result, err = r.ensureDeployment(request, celery, r.deploymentForFrontend(celery))
+	if result != nil {
+		return *result, err
+	}
+	result, err = r.ensureService(request, celery, r.serviceForFrontend(celery))
+	if result != nil {
+		return *result, err
+	}
+
+	frontendRunning := r.isFrontendUp(celery)
+
+	if !frontendRunning {
+		// If Frontend isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("Frontend isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	return reconcile.Result{}, nil
 
 }
-
-// // newPodForCR returns a busybox pod with the same name/namespace as the cr
-// func newPodForCR(cr *examplev1alpha1.Celery) *corev1.Pod {
-// 	labels := map[string]string{
-// 		"app": cr.Name,
-// 	}
-// 	return &corev1.Pod{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      cr.Name + "-pod",
-// 			Namespace: cr.Namespace,
-// 			Labels:    labels,
-// 		},
-// 		Spec: corev1.PodSpec{
-// 			Containers: []corev1.Container{
-// 				{
-// 					Name:    "busybox",
-// 					Image:   "busybox",
-// 					Command: []string{"sleep", "3600"},
-// 				},
-// 			},
-// 		},
-// 	}
-// }

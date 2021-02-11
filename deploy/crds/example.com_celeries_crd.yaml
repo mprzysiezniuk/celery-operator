@@ -37,6 +37,8 @@ spec:
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               type: string
+            frontendImage:
+              type: string
             wSize:
               format: int32
               type: integer
@@ -44,6 +46,7 @@ spec:
               type: string
           required:
           - brokerImage
+          - frontendImage
           - wSize
           - workerImage
           type: object

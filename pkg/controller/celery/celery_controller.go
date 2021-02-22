@@ -172,6 +172,29 @@ func (r *ReconcileCelery) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{RequeueAfter: delay}, nil
 	}
 
+	// === Flower ===
+
+	result, err = r.ensureDeployment(request, celery, r.deploymentForFlower(celery))
+	if result != nil {
+		return *result, err
+	}
+
+	result, err = r.ensureService(request, celery, r.serviceForFlower(celery))
+	if result != nil {
+		return *result, err
+	}
+
+	flowerRunning := r.isFlowerUp(celery)
+
+	if !flowerRunning {
+		// If worker isn't running yet, requeue the reconcile
+		// to run again after a delay
+		delay := time.Second * time.Duration(5)
+
+		log.Info(fmt.Sprintf("Celery flower isn't running, waiting for %s", delay))
+		return reconcile.Result{RequeueAfter: delay}, nil
+	}
+
 	// === Frontend ===
 
 	result, err = r.ensureDeployment(request, celery, r.deploymentForFrontend(celery))

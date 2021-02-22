@@ -1,2 +1,4 @@
-celery
+celery==4.4.7
 flask
+Pillow==7.2.0
+flower
